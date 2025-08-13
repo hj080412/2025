@@ -1,2 +1,2 @@
 import streamlit as st
-st.title('배고파')
+st.title('하이루') 
