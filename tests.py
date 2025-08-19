@@ -301,4 +301,5 @@ def create_study_plan(mbti, subject, start_date, end_date, daily_hours, difficul
     )
 
 # 메인 함수 실행
-if __name
+if __name__ == "__main__":
+    main()
