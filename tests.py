@@ -174,4 +174,4 @@ def main():
         
         with col2:
             st.subheader("멘탈 관리 팁")
-            st.image("https://i.imgur.com/JfVdwTY.png", caption=f"{selected_mbti} 추천 관리법", use_column_width=True)
+            st.image("https://i.imgur.com/JfVdwTY.png", caption=f"{selected_mbti} 추천 관리법", use_column_width=True
