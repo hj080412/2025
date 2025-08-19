@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 
 # 페이지 기본 설정
 st.set_page_config(
     page_title="MBTI 시험 기간 멘탈 관리 가이드",
-    page_icon="🧠",
+    page_icon="EMOJI_0",
     layout="wide"
 )
 
@@ -75,7 +73,7 @@ mbti_data = {
         '추천_공부법': '실전 문제 풀이와 체험 학습',
         '색상': '#FF5722'  # 밝은 주황색
     },
-       'ESFP': {
+    'ESFP': {
         '특성': '즉흥적이고 사교적임',
         '스트레스_요인': ['혼자 공부하는 시간', '단조로운 학습 방식', '장기 계획'],
         '관리법': ['친구들과 함께 공부하기', '게임처럼 학습 만들기', '음악 들으며 공부하기', '소셜 활동으로 스트레스 해소하기'],
@@ -128,7 +126,7 @@ mbti_data = {
 
 # 메인 함수
 def main():
-    st.title("🧠 MBTI별 시험 기간 스트레스 & 멘탈 관리법")
+    st.title("EMOJI_0 MBTI별 시험 기간 스트레스 & 멘탈 관리법")
     st.markdown("### 당신의 MBTI 유형에 맞는 최적의 시험 기간 관리법을 찾아보세요!")
     
     # 사이드바 - MBTI 선택
@@ -139,7 +137,7 @@ def main():
     )
     
     # 탭 생성
-    tab1, tab2, tab3 = st.tabs(["📊 MBTI 분석", "🧘‍♀️ 스트레스 관리법", "📝 나만의 공부 계획"])
+    tab1, tab2, tab3 = st.tabs(["EMOJI_1 MBTI 분석", "EMOJI_2‍♀️ 스트레스 관리법", "EMOJI_3 나만의 공부 계획"])
     
     # 탭 1: MBTI 분석
     with tab1:
@@ -157,8 +155,55 @@ def main():
             st.markdown(f"**{mbti_data[selected_mbti]['추천_공부법']}**")
         
         with col2:
-            # 레이더 차트 생성
-            create_radar_chart(selected_mbti)
+            # MBTI 유형별 특성 점수 차트 (matplotlib 대신 streamlit 내장 차트 사용)
+            st.subheader("MBTI 특성 분석")
+            
+            # 특성 점수 계산 (간단한 알고리즘)
+            scores = {}
+            
+            # 내향형/외향형
+            if selected_mbti[0] == 'I':
+                scores['집중력'] = 80
+                scores['사회성'] = 40
+            else:  # 'E'
+                scores['집중력'] = 60
+                scores['사회성'] = 90
+
+                        # 감각형/직관형
+            if selected_mbti[1] == 'S':
+                scores['체계성'] = 85
+                scores['창의성'] = 50
+            else:  # 'N'
+                scores['체계성'] = 60
+                scores['창의성'] = 90
+                
+            # 사고형/감정형
+            if selected_mbti[2] == 'T':
+                scores['분석력'] = 85
+                scores['공감력'] = 50
+            else:  # 'F'
+                scores['분석력'] = 60
+                scores['공감력'] = 85
+                
+            # 판단형/인식형
+            if selected_mbti[3] == 'J':
+                scores['계획성'] = 90
+                scores['적응력'] = 55
+            else:  # 'P'
+                scores['계획성'] = 55
+                scores['적응력'] = 85
+            
+            # 차트 데이터 생성
+            chart_data = pd.DataFrame({
+                '특성': list(scores.keys()),
+                '점수': list(scores.values())
+            })
+            
+            # 차트 표시
+            st.bar_chart(chart_data.set_index('특성'))
+            
+            # 색상 표시
+            st.markdown(f"<div style='background-color:{mbti_data[selected_mbti]['색상']}; height:20px; border-radius:5px;'></div>", unsafe_allow_html=True)
     
     # 탭 2: 스트레스 관리법
     with tab2:
@@ -174,6 +219,86 @@ def main():
         
         with col2:
             st.subheader("멘탈 관리 팁")
-            st.image("https://i.imgur.com/JfVdwTY.png", caption=f"{selected_mbti} 추천 관리법", use_column_width=True)
-if __name__ == "__main__":
-    main()
+            st.info("EMOJI_0 시험 전날에는 충분한 수면을 취하세요.")
+            st.info("EMOJI_1 적절한 휴식과 공부의 균형을 유지하세요.")
+            st.info("EMOJI_2 부정적 생각이 들면 잠시 멈추고 심호흡하세요.")
+    
+    # 탭 3: 나만의 공부 계획
+    with tab3:
+        st.header("EMOJI_3 나만의 맞춤 공부 계획 만들기")
+        
+        st.write(f"{selected_mbti} 유형에 맞는 공부 계획을 세워봅시다!")
+        
+        # 사용자 입력 받기
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            subject = st.text_input("과목명", "")
+            start_date = st.date_input("시작일")
+            end_date = st.date_input("종료일")
+        
+        with col2:
+            daily_hours = st.slider("하루 공부 시간 (시간)", 1, 12, 4)
+            difficulty = st.select_slider("난이도", options=["쉬움", "보통", "어려움", "매우 어려움"])
+        
+        if st.button("공부 계획 생성"):
+            if subject:
+                create_study_plan(selected_mbti, subject, start_date, end_date, daily_hours, difficulty)
+            else:
+                st.error("과목명을 입력해주세요.")
+
+# 팁 설명 함수
+def get_tip_description(tip):
+    # 팁별 상세 설명
+    descriptions = {
+        "명확한 일정표 작성하기": "시험 범위를 세분화하고 각 과목별 공부 시간을 할당하세요. 체크리스트를 만들어 진행 상황을 확인하며 성취감을 느껴보세요.",
+        "조용한 공부 환경 확보하기": "방해 요소가 없는 조용한 공간에서 집중력을 극대화하세요. 필요하다면 소음 차단 이어폰을 활용해보세요.",
+        "체크리스트로 진도 관리하기": "공부할 내용을 작은 단위로 나누고, 완료할 때마다 체크하며 성취감을 느껴보세요.",
+        "규칙적인 휴식 시간 갖기": "25분 공부 후 5분 휴식하는 뽀모도로 기법을 활용해 효율적으로 공부해보세요."
+    }
+    
+    # 기본 설명
+    default = "이 방법은 당신의 MBTI 특성에 맞게 스트레스를 효과적으로 관리하는 데 도움이 됩니다."
+    
+    return descriptions.get(tip, default)
+
+# 공부 계획 생성 함수
+def create_study_plan(mbti, subject, start_date, end_date, daily_hours, difficulty):
+    # 계획 생성 로직
+    days = (end_date - start_date).days + 1
+    
+    st.success(f"✅ {subject} 과목 {days}일 공부 계획이 생성되었습니다!")
+    
+    # MBTI별 맞춤 조언
+    st.subheader("EMOJI_4 MBTI 맞춤 학습 조언")
+    st.markdown(f"**{mbti}** 유형은 **{mbti_data[mbti]['특성']}** 특성을 가지고 있어요.")
+    st.markdown(f"**추천 공부법:** {mbti_data[mbti]['추천_공부법']}")
+    
+    # 일일 계획표 예시
+    st.subheader("EMOJI_5 일일 계획표 예시")
+    
+    daily_plan = pd.DataFrame({
+        "시간": [f"{i}:00 - {i+1}:00" for i in range(9, 9+daily_hours)],
+        "활동": [f"{subject} 학습 - {i+1}단계" for i in range(daily_hours)]
+    })
+    
+    st.table(daily_plan)
+    
+    # 진도율 표시
+    st.subheader("EMOJI_6 예상 진도율")
+    progress_data = pd.DataFrame({
+        '일차': list(range(1, days+1)),
+        '진도율': [min(100, i * (100/days) * 1.1) for i in range(1, days+1)]
+    })
+    st.line_chart(progress_data.set_index('일차'))
+    
+    # 다운로드 버튼
+    st.download_button(
+        label="EMOJI_7 공부 계획 다운로드",
+        data=daily_plan.to_csv().encode('utf-8'),
+        file_name=f'{subject}_study_plan.csv',
+        mime='text/csv',
+    )
+
+# 메인 함수 실행
+if __name
