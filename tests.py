@@ -175,3 +175,141 @@ def main():
         with col2:
             st.subheader("멘탈 관리 팁")
             st.image("https://i.imgur.com/JfVdwTY.png", caption=f"{selected_mbti} 추천 관리법", use_column_width=True)
+# 레이더 차트 생성 함수
+def create_radar_chart(mbti):
+    categories = ['집중력', '창의성', '체계성', '회복탄력성', '사회성']
+    
+    # MBTI별 특성에 따른 점수 부여 (예시)
+    if mbti[0] == 'I':  # 내향형
+        social = 3
+    else:  # 외향형
+        social = 5
+        
+    if mbti[1] == 'S':  # 감각형
+        creativity = 3
+        systematic = 5
+    else:  # 직관형
+        creativity = 5
+        systematic = 3
+        
+    if mbti[2] == 'T':  # 사고형
+        resilience = 4
+    else:  # 감정형
+        resilience = 5
+        
+    if mbti[3] == 'J':  # 판단형
+        focus = 5
+    else:  # 인식형
+        focus = 3
+    
+    values = [focus, creativity, systematic, resilience, social]
+    
+    # 차트 생성
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_subplot(111, polar=True)
+    
+    # 각도 설정
+    angles = np.linspace(0, 2*np.pi, len(categories), endpoint=False).tolist()
+    values += values[:1]  # 첫 값 반복해서 원 완성
+    angles += angles[:1]
+    
+    # 차트 그리기
+    ax.plot(angles, values, color=mbti_data[mbti]['색상'], linewidth=2)
+    ax.fill(angles, values, color=mbti_data[mbti]['색상'], alpha=0.25)
+    
+    # 축 설정
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categories)
+    ax.set_yticks([1, 2, 3, 4, 5])
+    ax.set_yticklabels(['1', '2', '3', '4', '5'])
+    ax.set_ylim(0, 5)
+    
+    plt.title(f"{mbti} 특성 분석", size=15)
+    
+    # 스트림릿에 표시
+    st.pyplot(fig)
+
+# 팁 설명 함수
+def get_tip_description(tip):
+    # 팁별 상세 설명
+    descriptions = {
+        "명확한 일정표 작성하기": "시험 범위를 세분화하고 각 과목별 공부 시간을 할당하세요. 체크리스트를 만들어 진행 상황을 확인하며 성취감을 느껴보세요.",
+        "조용한 공부 환경 확보하기": "방해 요소가 없는 조용한 공간에서 집중력을 극대화하세요. 필요하다면 소음 차단 이어폰을 활용해보세요.",
+        "체크리스트로 진도 관리하기": "공부할 내용을 작은 단위로 나누고, 완료할 때마다 체크하며 성취감을 느껴보세요.",
+        "규칙적인 휴식 시간 갖기": "25분 공부 후 5분 휴식하는 뽀모도로 기법을 활용해 효율적으로 공부해보세요.",
+        # 다른 팁들의 설명 추가...
+    }
+    
+    # 기본 설명
+    default = "이 방법은 당신의 MBTI 특성에 맞게 스트레스를 효과적으로 관리하는 데 도움이 됩니다."
+    
+    return descriptions.get(tip, default)
+
+# 나만의 공부 계획 탭 함수
+def study_plan_tab(mbti):
+    st.header("📝 나만의 맞춤 공부 계획 만들기")
+    
+    st.write(f"{mbti} 유형에 맞는 공부 계획을 세워봅시다!")
+    
+    # 사용자 입력 받기
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        subject = st.text_input("과목명", "")
+        start_date = st.date_input("시작일")
+        end_date = st.date_input("종료일")
+    
+    with col2:
+        daily_hours = st.slider("하루 공부 시간 (시간)", 1, 12, 4)
+        difficulty = st.select_slider("난이도", options=["쉬움", "보통", "어려움", "매우 어려움"])
+    
+    if st.button("공부 계획 생성"):
+        if subject:
+            create_study_plan(mbti, subject, start_date, end_date, daily_hours, difficulty)
+        else:
+            st.error("과목명을 입력해주세요.")
+
+# 공부 계획 생성 함수
+def create_study_plan(mbti, subject, start_date, end_date, daily_hours, difficulty):
+    # 계획 생성 로직
+    days = (end_date - start_date).days + 1
+    
+    st.success(f"✅ {subject} 과목 {days}일 공부 계획이 생성되었습니다!")
+    
+    # MBTI별 맞춤 조언
+    st.subheader("🔍 MBTI 맞춤 학습 조언")
+    st.markdown(f"**{mbti}** 유형은 **{mbti_data[mbti]['특성']}** 특성을 가지고 있어요.")
+    st.markdown(f"**추천 공부법:** {mbti_data[mbti]['추천_공부법']}")
+    
+    # 일일 계획표 예시
+    st.subheader("📅 일일 계획표 예시")
+    
+    daily_plan = pd.DataFrame({
+        "시간": [f"{i}:00 - {i+1}:00" for i in range(9, 9+daily_hours)],
+        "활동": [f"{subject} 학습 - {i+1}단계" for i in range(daily_hours)]
+    })
+    
+    st.table(daily_plan)
+    
+    # 학습 진도표
+    st.subheader("📈 학습 진도표")
+    progress_chart = create_progress_chart(days)
+    st.pyplot(progress_chart)
+    
+    # 다운로드 버튼
+    st.download_button(
+        label="📥 공부 계획 다운로드",
+        data=daily_plan.to_csv().encode('utf-8'),
+        file_name=f'{subject}_study_plan.csv',
+        mime='text/csv',
+    )
+
+# 진도표 생성 함수
+def create_progress_chart(days):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    
+    x = list(range(1, days+1))
+    y = np.cumsum(np.random.uniform(0.7, 1.0, days))
+    y = y / y[-1] * 100  # 퍼센트로 변환
+    
+    ax.plot(x, y, marker='o
